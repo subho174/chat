@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/* 
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+} */
+@layer components {
+  body {
+    @apply bg-gray-100;
+  }
+  .labels {
+    @apply flex flex-col;
+  }
+  label {
+    @apply mr-[10px] font-medium;
+  }
+  input {
+    @apply border-2 border-gray-300 rounded-[0.25rem] outline-none p-[0.25rem_0.5rem] text-black m-[0.75rem_0] focus:border-[#646cff] focus:border-[2px];
+  }
+  .style{
+    @apply w-12 h-12 flex items-center justify-center rounded-full border border-gray-300 cursor-pointer hover:bg-gray-100
+  }
+}
