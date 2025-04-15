@@ -11,31 +11,36 @@ const cors = require("cors");
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const User = require("./models/user.models");
+const chatRouter = require("./routes/chat.routes");
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    // origin: "http://localhost:5173",
+    origin: "https://vibenode.netlify.app",
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(cookieParser());
 app.use("/user", userRouter);
+app.use("/chat", chatRouter);
 
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    // origin: "http://localhost:5173",
+    origin: "https://vibenode.netlify.app",
     credentials: true,
   },
 });
 
 io.on("connection", (socket) => {
   console.log("new user connected", socket.id);
-  socket.on('chat', ({message, socketId }) => {
+  socket.on("chat", ({ message, socketId }) => {
     socket.to(socketId).emit("chat", message);
-  })
-  socket.emit("chat", socket.id);
+  });
+  socket.emit("save-id", socket.id);
 });
 
 // io.use((socket, next) => {
@@ -50,7 +55,6 @@ io.on("connection", (socket) => {
 // });
 io.use(async (socket, next) => {
   try {
-    
     const cookies = cookie.parse(socket.request.headers.cookie);
     if (!cookies) return next(new Error("No Cookie found"));
 

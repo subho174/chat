@@ -1,6 +1,11 @@
+// const options = {
+//     httpOnly: false,
+//     secure: false,
+//   };
 const options = {
-    httpOnly: false,
-    secure: false,
-  };
-  
-  module.exports ={options}
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+};
+
+module.exports = { options };

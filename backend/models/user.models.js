@@ -1,5 +1,5 @@
 const { mongoose, Schema } = require("mongoose");
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const userSchema = new Schema(
@@ -17,9 +17,18 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Password is required"],
     },
+    chatHistory: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    userSocketId: {
+      type: String,
+    },
     refreshToken: {
-        type: String
-    }
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -47,16 +56,16 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 userSchema.methods.generateRefreshToken = function () {
-    return jwt.sign(
-      {
-        _id: this._id,
-      },
-      process.env.REFRESH_TOKEN_SECRET,
-      {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-      }
-    );
-  };
+  return jwt.sign(
+    {
+      _id: this._id,
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+    }
+  );
+};
 
 const User = mongoose.model("User", userSchema);
 
