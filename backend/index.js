@@ -13,6 +13,7 @@ const jwt = require("jsonwebtoken");
 const User = require("./models/user.models");
 const chatRouter = require("./routes/chat.routes");
 console.log(process.env.CORS_ORIGIN);
+const userSocketMap = {};
 
 app.use(
   cors({
@@ -38,10 +39,26 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log("new user connected", socket.id);
-  socket.on("chat", ({ message, socketId }) => {
-    socket.to(socketId).emit("chat", message);
+  const userId = socket.handshake.query.userId;
+  userSocketMap[userId] = socket.id;
+  console.log(userId, userSocketMap);
+
+  // socket.on("chat", ({ message, socketId }) => {
+  //   socket.to(socketId).emit("chat", message);
+  // });
+  socket.on("chat", ({ message, userId }) => {
+    const receiverId = userSocketMap[userId];
+    if (receiverId) socket.to(receiverId).emit("chat", message);
+    else console.log(`${userId} not connected now`);
+    console.log(userId, receiverId, userSocketMap);
   });
-  socket.emit("save-id", socket.id);
+  // socket.emit("save-id", socket.id);
+  socket.on("disconnect", () => {
+    if (userId && userSocketMap[userId]) {
+      delete userSocketMap[userId];
+      console.log(`${userId} disconnected`.userSocketMap);
+    }
+  });
 });
 
 // io.use((socket, next) => {
