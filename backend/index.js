@@ -12,11 +12,12 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const User = require("./models/user.models");
 const chatRouter = require("./routes/chat.routes");
+console.log(process.env.CORS_ORIGIN);
 
 app.use(
   cors({
     // origin: "http://localhost:5173",
-    origin: "https://vibenode.netlify.app",
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -30,7 +31,7 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     // origin: "http://localhost:5173",
-    origin: "https://vibenode.netlify.app",
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   },
 });

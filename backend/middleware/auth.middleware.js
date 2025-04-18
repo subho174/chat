@@ -4,7 +4,6 @@ const User = require("../models/user.models");
 const { ApiError } = require("../Utils/ApiError");
 
 const verifyJWT = asyncHandler(async (req, res, next) => {
-    
   try {
     const token =
       req.cookies?.accessToken ||
