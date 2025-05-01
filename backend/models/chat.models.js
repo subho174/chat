@@ -13,6 +13,13 @@ const messageSchema = new Schema({
     type: String,
     required: [true, "Enter some message"],
   },
+  attachment: {
+    type: String,
+  },
+  isViewed: {
+    type: Boolean,
+    default: false,
+  },
   postedAt: {
     type: Date,
     default: Date.now,

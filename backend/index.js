@@ -12,7 +12,8 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const User = require("./models/user.models");
 const chatRouter = require("./routes/chat.routes");
-console.log(process.env.CORS_ORIGIN);
+const { userInfo } = require("os");
+// console.log(process.env.CORS_ORIGIN);
 const userSocketMap = {};
 
 app.use(
@@ -38,25 +39,34 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("new user connected", socket.id);
+  // console.log("new user connected", socket.id);
   const userId = socket.handshake.query.userId;
   userSocketMap[userId] = socket.id;
-  console.log(userId, userSocketMap);
-
+  // console.log(userId, userSocketMap);
+  console.log(userSocketMap);
   // socket.on("chat", ({ message, socketId }) => {
   //   socket.to(socketId).emit("chat", message);
   // });
-  socket.on("chat", ({ message, userId }) => {
-    const receiverId = userSocketMap[userId];
-    if (receiverId) socket.to(receiverId).emit("chat", message);
-    else console.log(`${userId} not connected now`);
-    console.log(userId, receiverId, userSocketMap);
+  socket.on("chat", ({ messageId, message, receiver, isViewed }) => {
+    console.log(userId);
+    const receiverId = userSocketMap[receiver];
+    console.log(receiverId);
+    if (receiverId) socket.to(receiverId).emit("chat", {messageId,message, isViewed});
+    else console.log(`${receiver} not connected now`);
+    // console.log(userId, receiverId, userSocketMap);
   });
+  socket.on("message-viewed", ({receiver}) => {
+    const receiverId = userSocketMap[receiver];
+    console.log(receiverId);
+    if (receiverId) socket.to(receiverId).emit("message-viewed");
+    else console.log(`${userId} not connected now`);
+  })
   // socket.emit("save-id", socket.id);
   socket.on("disconnect", () => {
     if (userId && userSocketMap[userId]) {
       delete userSocketMap[userId];
-      console.log(`${userId} disconnected`.userSocketMap);
+      // console.log(`${userId} disconnected`.userSocketMap);
+      // console.log(userSocketMap);
     }
   });
 });
@@ -100,3 +110,6 @@ connectDB();
 server.listen(4002, () => {
   console.log("Server is ready");
 });
+let connectedUsers = { userSocketMap: userSocketMap };
+
+module.exports = { connectedUsers };

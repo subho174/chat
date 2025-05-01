@@ -38,9 +38,10 @@ const signUp = asyncHandler(async (req, res) => {
     user._id
   );
 
-  const newUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  );
+  const newUser = await User.findById(user._id);
+  // .select(
+  //   "-password -refreshToken"
+  // );
   if (!newUser)
     return res.status(400).json(new ApiError(400, "Failed to register user"));
 
@@ -59,12 +60,16 @@ const signUp = asyncHandler(async (req, res) => {
 
 const logIn = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
-  console.log(username, email, password);
 
   if (!(username && email && password))
     return res.status(400).json(new ApiError(400, "All Fields are required"));
 
-  const existingUser = await User.findOne({ email, username });
+  // const existingUser = await User.findOne({ email, username });
+
+  // making login faster
+  const existingUser = await User.findOne({ email, username }).select(
+    "password"
+  );
   // console.log(existingUser);
 
   if (!existingUser)
@@ -78,11 +83,15 @@ const logIn = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
     existingUser._id
   );
-  // console.log(accessToken, refreshToken);
 
-  const loggedInUser = await User.findById(existingUser._id).select(
-    "-password -refreshToken"
-  );
+  const loggedInUser = await User.findById(existingUser._id);
+  // .select(
+  //   "-password -refreshToken"
+  // );
+
+  // making login faster
+  // existingUser.password = undefined;
+  // existingUser.refreshToken = undefined;
 
   return res
     .status(200)
@@ -91,7 +100,10 @@ const logIn = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { loggedInUser, accessToken },
+        {
+          loggedInUser,
+          accessToken,
+        },
         "Logged in successfully"
       )
     );
@@ -110,9 +122,10 @@ const logOut = asyncHandler(async (req, res) => {
 });
 
 const getUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select(
-    "-password -refreshToken"
-  );
+  const user = await User.findById(req.user._id);
+  // .select(
+  //   "-password -refreshToken"
+  // );
 
   if (!user) return res.status(404).json(new ApiError(404, "User not found"));
 

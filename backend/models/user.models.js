@@ -16,6 +16,7 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
+      select: false,  // by this, password will never be sent with user query until explicitly asked
     },
     chatHistory: [
       {
@@ -28,6 +29,7 @@ const userSchema = new Schema(
     },
     refreshToken: {
       type: String,
+      select: false   // by this, refresh token will never be sent with user query until explicitly asked
     },
   },
   {
@@ -66,6 +68,9 @@ userSchema.methods.generateRefreshToken = function () {
     }
   );
 };
+
+// making login faster
+userSchema.index({ email: 1, username: 1 });
 
 const User = mongoose.model("User", userSchema);
 
