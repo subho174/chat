@@ -89,17 +89,9 @@ const getAllUsers = asyncHandler(async (req, res) => {
 const storeMessage = asyncHandler(async (req, res) => {
   let { receiverId, message } = req.body;
   let uploadedFile;
-  // console.log(req.user._id, receiverId);
-  // console.log(message, file, req.file, req.files);
-
-  // message = JSON.parse(message);
-
-  // return res
-  // .status(201)
-  // .json(new ApiResponse(201, file, "File uploaded successfully"));
 
   if (!(message && receiverId))
-    return res.status(400).json(new ApiError(400, "Enter a message"));
+    return res.status(400).json(new ApiError(400, "Enter all fields"));
 
   if (req.file) {
     const fileLocalPath = req.file?.path;
@@ -117,7 +109,7 @@ const storeMessage = asyncHandler(async (req, res) => {
   }
 
   const oldChat = await Chat.findOne({
-    members: { $all: [req.user._id, receiverId] },
+    members: { $all: [req.user._id.toString(), receiverId.toString()].sort() },
   });
 
   // one case is pending here; if somehow fetching oldChat from db failed, then what to do;
@@ -125,18 +117,26 @@ const storeMessage = asyncHandler(async (req, res) => {
   // if (!oldChat)
   //   return res.status(400).json(new ApiError(400, "Failed to send message"));
 
+  const messageObj = {
+    message,
+    senderId: req.user._id,
+    receiverId,
+    ...(uploadedFile && { attachment: uploadedFile.url }),
+  };
+
   if (oldChat && oldChat.messages.length != 0) {
     const updatedChat = await Chat.findByIdAndUpdate(
       oldChat._id,
       {
         $push: {
-          messages: {
-            message,
-            senderId: req.user._id,
-            receiverId,
-            // attachment: uploadedFile ? uploadedFile.url : null,
-            ...(uploadedFile && { attachment: uploadedFile.url }),
-          },
+          messages: messageObj,
+          // {
+          //   message,
+          //   senderId: req.user._id,
+          //   receiverId,
+          //   // attachment: uploadedFile ? uploadedFile.url : null,
+          //   ...(uploadedFile && { attachment: uploadedFile.url }),
+          // },
         },
       },
       { new: true }
@@ -150,22 +150,22 @@ const storeMessage = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          { updatedChat, finalMessage: updatedChat.messages.at(-1) },
+          // { updatedChat, finalMessage: updatedChat.messages.at(-1) },
+          {finalMessage: updatedChat.messages.at(-1)},
           "Message stored successfully"
         )
       );
   }
   const newMessage = await Chat.create({
-    // senderId: req.user._id,
-    // receiverId,
     members: [req.user._id, receiverId],
     messages: [
-      {
-        message,
-        senderId: req.user._id,
-        receiverId,
-        ...(uploadedFile && { attachment: uploadedFile.url }),
-      },
+      messageObj,
+      // {
+      //   message,
+      //   senderId: req.user._id,
+      //   receiverId,
+      //   ...(uploadedFile && { attachment: uploadedFile.url }),
+      // },
     ],
   });
 
@@ -174,7 +174,31 @@ const storeMessage = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, newMessage, "Message stored successfully"));
+    .json(new ApiResponse(201, {finalMessage: newMessage.messages[0]}, "Message stored successfully"));
+
+  // const messageObj = {
+  //   message,
+  //   senderId: req.user._id,
+  //   receiverId,
+  //   ...(uploadedFile && { attachment: uploadedFile.url }),
+  // };
+
+  // const updatedChat = await Chat.findOneAndUpdate(
+  //   { _id: chatId, members: receiverId },
+  //   // { members: { $all: [req.user._id, receiverId] } },
+  //   {
+  //     $push: { messages: messageObj },
+  //     $setOnInsert: { members: [req.user._id, receiverId] },
+  //   },
+  //   { upsert: true, new: true }
+  // );
+
+  // if (!updatedChat)
+  //   return res.status(400).json(new ApiError(400, "Failed to update chat"));
+
+  // return res
+  //   .status(200)
+  //   .json(new ApiResponse(200, updatedChat, "Message stored successfully"));
 });
 
 const checkIfOldChatExists = asyncHandler(async (req, res) => {

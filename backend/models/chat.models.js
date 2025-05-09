@@ -41,6 +41,7 @@ const chatSchema = new Schema(
   }
 );
 
+chatSchema.index({ members: 1 });
 const Chat = mongoose.model("Chat", chatSchema);
 
 module.exports = Chat;

@@ -39,7 +39,6 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  // console.log("new user connected", socket.id);
   const userId = socket.handshake.query.userId;
   userSocketMap[userId] = socket.id;
   // console.log(userId, userSocketMap);
@@ -47,20 +46,26 @@ io.on("connection", (socket) => {
   // socket.on("chat", ({ message, socketId }) => {
   //   socket.to(socketId).emit("chat", message);
   // });
-  socket.on("chat", ({ messageId, message, receiver, isViewed }) => {
+  socket.on("chat", ({ messageId, senderId, message, receiver, isViewed,postedAt }) => {
     console.log(userId);
+    console.log(receiver);
+    console.log(userSocketMap);
+
     const receiverId = userSocketMap[receiver];
     console.log(receiverId);
-    if (receiverId) socket.to(receiverId).emit("chat", {messageId,message, isViewed});
+    if (receiverId)
+      socket
+        .to(receiverId)
+        .emit("chat", { messageId, senderId, message, isViewed,postedAt });
     else console.log(`${receiver} not connected now`);
     // console.log(userId, receiverId, userSocketMap);
   });
-  socket.on("message-viewed", ({receiver}) => {
+  socket.on("message-viewed", ({ receiver }) => {
     const receiverId = userSocketMap[receiver];
     console.log(receiverId);
     if (receiverId) socket.to(receiverId).emit("message-viewed");
-    else console.log(`${userId} not connected now`);
-  })
+    else console.log(`${receiverId} not connected now`);
+  });
   // socket.emit("save-id", socket.id);
   socket.on("disconnect", () => {
     if (userId && userSocketMap[userId]) {
